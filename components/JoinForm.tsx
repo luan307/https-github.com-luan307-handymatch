@@ -1,20 +1,72 @@
-import React, { useState } from 'react';
-import { ProfessionalCategory } from '../types.ts';
+
+import React, { useState, useRef } from 'react';
+import { ProfessionalCategory, Professional } from '../types.ts';
 
 type JoinMode = 'REGISTER' | 'DELETE';
 type DeleteStep = 'SEARCH' | 'CONFIRM' | 'SUCCESS';
 
-const JoinForm: React.FC = () => {
+interface JoinFormProps {
+  onRegister: (pro: Professional) => void;
+  onDelete: (email: string) => void;
+}
+
+const JoinForm: React.FC<JoinFormProps> = ({ onRegister, onDelete }) => {
   const [mode, setMode] = useState<JoinMode>('REGISTER');
   const [registerSubmitted, setRegisterSubmitted] = useState(false);
   
+  // Register Form States
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    category: Object.values(ProfessionalCategory)[0],
+    hourlyRate: '',
+    experience: 'Iniciante (Menos de 1 ano)',
+    location: '',
+  });
+  const [profileImage, setProfileImage] = useState<string>('https://i.pravatar.cc/300'); // Default avatar
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // States for Deletion Flow
   const [deleteStep, setDeleteStep] = useState<DeleteStep>('SEARCH');
   const [searchEmail, setSearchEmail] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Create new professional object
+    const newPro: Professional = {
+      id: crypto.randomUUID(),
+      name: `${formData.firstName} ${formData.lastName}`,
+      category: formData.category as ProfessionalCategory,
+      rating: 5.0, // New profiles start with 5 stars or no rating (using 5 to encourage usage)
+      reviews: 0,
+      hourlyRate: parseFloat(formData.hourlyRate) || 50,
+      distance: '0.5 km', // Mock distance
+      imageUrl: profileImage,
+      available: true,
+      phoneNumber: formData.phone,
+      email: formData.email
+    };
+
+    onRegister(newPro);
     setRegisterSubmitted(true);
   };
 
@@ -29,7 +81,7 @@ const JoinForm: React.FC = () => {
   };
 
   const handleConfirmDelete = () => {
-    // Simulate deletion request
+    onDelete(searchEmail);
     setDeleteStep('SUCCESS');
   };
 
@@ -37,6 +89,17 @@ const JoinForm: React.FC = () => {
     setRegisterSubmitted(false);
     setDeleteStep('SEARCH');
     setSearchEmail('');
+    setFormData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      category: Object.values(ProfessionalCategory)[0],
+      hourlyRate: '',
+      experience: 'Iniciante (Menos de 1 ano)',
+      location: '',
+    });
+    setProfileImage('https://i.pravatar.cc/300');
   };
 
   return (
@@ -124,11 +187,11 @@ const JoinForm: React.FC = () => {
                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="material-symbols-outlined text-red-600 text-3xl">warning</span>
                 </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-2">Perfil Encontrado</h4>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">Confirmar Exclusão</h4>
                 <p className="text-gray-500 mb-6">
-                  Localizamos o cadastro vinculado a <strong>{searchEmail}</strong>.
+                  Você está prestes a excluir o cadastro vinculado a <strong>{searchEmail}</strong>.
                   <br/>
-                  <span className="text-red-600 font-semibold text-sm block mt-2">Atenção: Esta ação não pode ser desfeita.</span>
+                  <span className="text-red-600 font-semibold text-sm block mt-2">Atenção: Esta ação é irreversível e removerá seu perfil imediatamente da lista de serviços.</span>
                 </p>
                 
                 <div className="flex flex-col gap-3">
@@ -155,7 +218,7 @@ const JoinForm: React.FC = () => {
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900">Conta Excluída</h3>
                 <p className="text-gray-600 mt-2">
-                  Seus dados foram removidos da nossa base de dados com sucesso. Você não receberá mais solicitações de serviço.
+                  Seus dados foram removidos da nossa base de dados com sucesso.
                 </p>
                 <button 
                   onClick={resetForms}
@@ -177,13 +240,13 @@ const JoinForm: React.FC = () => {
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="material-symbols-outlined text-green-600 text-4xl">check_circle</span>
               </div>
-              <h3 className="text-2xl font-bold text-green-800">Candidatura Recebida!</h3>
-              <p className="text-green-700 mt-2 text-lg">Obrigado pelo seu interesse em se juntar ao HandyMatch. Seu perfil será analisado e entraremos em contato em breve.</p>
+              <h3 className="text-2xl font-bold text-green-800">Cadastro Realizado com Sucesso!</h3>
+              <p className="text-green-700 mt-2 text-lg">Seu perfil já está ativo e visível para todos os clientes.</p>
               <button 
                 onClick={() => setRegisterSubmitted(false)}
                 className="mt-8 px-6 py-2 bg-white text-green-700 border border-green-200 rounded-full font-medium hover:bg-green-50 transition-colors"
               >
-                Enviar outra candidatura
+                Cadastrar outro profissional
               </button>
             </div>
           ) : (
@@ -198,6 +261,27 @@ const JoinForm: React.FC = () => {
               
               <form onSubmit={handleRegisterSubmit} className="p-8 space-y-8">
                 
+                {/* Photo Upload Section */}
+                <div className="flex flex-col items-center justify-center mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Foto de Perfil</label>
+                  <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-100 shadow-md">
+                      <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="material-symbols-outlined text-white text-3xl">photo_camera</span>
+                    </div>
+                  </div>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleImageUpload} 
+                    className="hidden" 
+                    accept="image/*"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">Clique para alterar a foto</p>
+                </div>
+
                 {/* Personal Info Section */}
                 <div>
                   <h4 className="text-gray-900 font-semibold mb-4 flex items-center text-lg">
@@ -207,19 +291,19 @@ const JoinForm: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-                      <input required type="text" id="firstName" className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors" placeholder="Seu nome" />
+                      <input required type="text" id="firstName" value={formData.firstName} onChange={handleInputChange} className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors" placeholder="Seu nome" />
                     </div>
                     <div>
                       <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">Sobrenome</label>
-                      <input required type="text" id="lastName" className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors" placeholder="Seu sobrenome" />
+                      <input required type="text" id="lastName" value={formData.lastName} onChange={handleInputChange} className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors" placeholder="Seu sobrenome" />
                     </div>
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                      <input required type="email" id="email" className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors" placeholder="seu@email.com" />
+                      <input required type="email" id="email" value={formData.email} onChange={handleInputChange} className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors" placeholder="seu@email.com" />
                     </div>
                     <div>
                       <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Telefone / WhatsApp</label>
-                      <input required type="tel" id="phone" className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors" placeholder="(11) 99999-9999" />
+                      <input required type="tel" id="phone" value={formData.phone} onChange={handleInputChange} className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors" placeholder="(11) 99999-9999" />
                     </div>
                   </div>
                 </div>
@@ -235,7 +319,7 @@ const JoinForm: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Profissão / Categoria</label>
-                      <select id="category" className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none bg-white">
+                      <select id="category" value={formData.category} onChange={handleInputChange} className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none bg-white">
                         {Object.values(ProfessionalCategory).map((cat) => (
                           <option key={cat} value={cat}>{cat}</option>
                         ))}
@@ -248,13 +332,13 @@ const JoinForm: React.FC = () => {
                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                           <span className="text-gray-500 sm:text-sm font-bold">R$</span>
                         </div>
-                        <input required type="number" id="hourlyRate" min="0" step="0.01" className="block w-full rounded-lg border border-gray-300 bg-white pl-10 px-3 py-2.5 focus:border-blue-500 focus:ring-blue-500 focus:outline-none" placeholder="0,00" />
+                        <input required type="number" id="hourlyRate" value={formData.hourlyRate} onChange={handleInputChange} min="0" step="0.01" className="block w-full rounded-lg border border-gray-300 bg-white pl-10 px-3 py-2.5 focus:border-blue-500 focus:ring-blue-500 focus:outline-none" placeholder="0,00" />
                       </div>
                     </div>
 
                     <div>
                       <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-1">Tempo de Experiência</label>
-                      <select id="experience" className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none bg-white">
+                      <select id="experience" value={formData.experience} onChange={handleInputChange} className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none bg-white">
                         <option>Iniciante (Menos de 1 ano)</option>
                         <option>Júnior (1-3 anos)</option>
                         <option>Pleno (3-5 anos)</option>
@@ -286,7 +370,7 @@ const JoinForm: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">Sua Base (Bairro/Cidade)</label>
-                      <input required type="text" id="location" className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none" placeholder="Ex: Centro, São Paulo" />
+                      <input required type="text" id="location" value={formData.location} onChange={handleInputChange} className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none" placeholder="Ex: Centro, São Paulo" />
                     </div>
                     
                     <div>

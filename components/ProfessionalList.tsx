@@ -1,15 +1,17 @@
+
 import React, { useMemo, useState } from 'react';
-import { MOCK_PROFESSIONALS } from '../constants.ts';
 import { ProfessionalCategory, AnalysisResult, Professional } from '../types.ts';
 import BookingModal from './BookingModal.tsx';
 
 interface ProfessionalListProps {
+  professionals: Professional[];
   filterCategory?: ProfessionalCategory;
   analysisResult?: AnalysisResult;
   onClearFilter: () => void;
 }
 
 const ProfessionalList: React.FC<ProfessionalListProps> = ({ 
+  professionals,
   filterCategory, 
   analysisResult,
   onClearFilter 
@@ -19,7 +21,7 @@ const ProfessionalList: React.FC<ProfessionalListProps> = ({
   const [selectedProForHiring, setSelectedProForHiring] = useState<Professional | null>(null);
 
   const filteredPros = useMemo(() => {
-    let pros = MOCK_PROFESSIONALS;
+    let pros = professionals;
     
     if (filterCategory) {
       pros = pros.filter(p => p.category === filterCategory);
@@ -31,7 +33,7 @@ const ProfessionalList: React.FC<ProfessionalListProps> = ({
       // Mock distance sort (string comparison for demo)
       return parseFloat(a.distance) - parseFloat(b.distance);
     });
-  }, [filterCategory, sortBy]);
+  }, [professionals, filterCategory, sortBy]);
 
   const sortLabels = {
     rating: 'Avaliação',

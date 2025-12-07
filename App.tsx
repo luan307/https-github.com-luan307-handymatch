@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Header from './components/Header.tsx';
 import Hero from './components/Hero.tsx';
@@ -5,12 +6,16 @@ import ImageAnalyzer from './components/ImageAnalyzer.tsx';
 import ProfessionalList from './components/ProfessionalList.tsx';
 import JoinForm from './components/JoinForm.tsx';
 import HowItWorks from './components/HowItWorks.tsx';
-import { ViewState, AnalysisResult, ProfessionalCategory } from './types.ts';
+import { ViewState, AnalysisResult, ProfessionalCategory, Professional } from './types.ts';
+import { MOCK_PROFESSIONALS } from './constants.ts';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('HOME');
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | undefined>(undefined);
   const [activeFilter, setActiveFilter] = useState<ProfessionalCategory | undefined>(undefined);
+  
+  // State to hold the list of professionals (starts with mocks, but can be added to)
+  const [professionals, setProfessionals] = useState<Professional[]>(MOCK_PROFESSIONALS);
 
   const handleNavigate = (view: ViewState) => {
     setCurrentView(view);
@@ -29,6 +34,14 @@ const App: React.FC = () => {
   const handleClearFilter = () => {
     setActiveFilter(undefined);
     setAnalysisResult(undefined);
+  };
+
+  const handleRegisterProfessional = (newPro: Professional) => {
+    setProfessionals(prev => [newPro, ...prev]);
+  };
+
+  const handleDeleteProfessional = (email: string) => {
+    setProfessionals(prev => prev.filter(p => p.email !== email));
   };
 
   const popularServices = [
@@ -93,6 +106,7 @@ const App: React.FC = () => {
 
         {currentView === 'PRO_LIST' && (
           <ProfessionalList 
+            professionals={professionals}
             filterCategory={activeFilter} 
             analysisResult={analysisResult}
             onClearFilter={handleClearFilter}
@@ -100,7 +114,10 @@ const App: React.FC = () => {
         )}
 
         {currentView === 'JOIN' && (
-          <JoinForm />
+          <JoinForm 
+            onRegister={handleRegisterProfessional} 
+            onDelete={handleDeleteProfessional}
+          />
         )}
 
         {currentView === 'HOW_IT_WORKS' && (

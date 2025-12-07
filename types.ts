@@ -35,6 +35,7 @@ export interface Professional {
   imageUrl: string;
   available: boolean;
   phoneNumber: string;
+  email?: string; // Added for account management
 }
 
 export interface AnalysisResult {
