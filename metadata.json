@@ -1,0 +1,9 @@
+{
+  "name": "Copy of HandyMatch AI",
+  "description": "Conecte-se instantaneamente com profissionais locais. Use a IA Gemini para analisar os reparos da sua casa a partir de uma foto e encontre o especialista perfeito por perto.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

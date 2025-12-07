@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HandyMatch AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+    </style>
+    <!-- Adicionando Babel para transpilar JSX/TSX no navegador -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <script type="importmap">
+    {
+      "imports": {
+        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+        "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+        "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+        "react": "https://aistudiocdn.com/react@^19.2.0",
+        "react/": "https://aistudiocdn.com/react@^19.2.0/",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+        "node-domexception": "data:text/javascript;charset=utf-8,export const DOMException = window.DOMException; export default window.DOMException;"
+      }
+    }
+    </script>
+    <script>
+      if (window.location.protocol === 'file:') {
+        alert('Atenção: Este aplicativo usa Módulos ES6 e Babel que podem ser bloqueados pelo navegador ao abrir o arquivo diretamente (protocolo file://). Para funcionar corretamente, utilize um servidor local (ex: Live Server do VS Code ou "python -m http.server").');
+      }
+    </script>
+</head>
+  <body class="bg-gray-50 text-gray-900">
+    <div id="root"></div>
+    <!-- Alterado para text/babel e data-type="module" para funcionar com Babel Standalone -->
+    <script type="text/babel" data-type="module" src="./index.tsx"></script>
+  </body>
+</html>
